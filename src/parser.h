@@ -17,6 +17,8 @@ public:
     
     //Limpia espacios en blanco al inicio y final
     static string trim(const string& str);
+
+    static void detectar_redirecciones(vector<string>& tokens, string& input_file, string& output_file, bool& append_output);
 };
 
 #endif
