@@ -1,5 +1,6 @@
 #include "shell.h"
 #include "parser.h"
+#include <executor.h>
 #include <iostream>
 #include <vector>
 using namespace std;
@@ -38,23 +39,7 @@ void Shell::ejecutar() {
 
             // EJECUCIÓN BÁSICA (solo para demostrar funcionamiento)
             if (!tokens.empty()) {
-                cout << "Ejecutando: " << tokens[0];
-                if (tokens.size() > 1) {
-                    cout << " con argumentos: ";
-                    for (size_t i = 1; i < tokens.size(); i++) {
-                        cout << tokens[i] << " ";
-                    }
-                }
-                cout << endl;
-                
-                // Comandos internos básicos
-                if (tokens[0] == "pwd") {
-                    // Simular pwd por ahora
-                    cout << "/home/usuario/proyectos" << endl;
-                }
-                else if (tokens[0] == "help") {
-                    cout << "Comandos disponibles: pwd, help, salir" << endl;
-                }
+                Executor::ejecutar_comando(tokens);
             }
         }
     }

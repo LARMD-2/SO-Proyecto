@@ -4,6 +4,7 @@
 #include <sys/wait.h>
 #include <cstring>
 #include <cstdlib>
+#include <builtins.h>
 using namespace std;
 
 // Función principal que decide si es interno o externo
@@ -21,14 +22,14 @@ int Executor::ejecutar_comando(const vector<string>& tokens) {
 
 // Verificar comandos internos
 bool Executor::es_comando_interno(const string& comando) {
-    return comando == "cd" || comando == "pwd" || comando == "help" || comando == "salir";
+    return Builtins::es_comando_interno(comando);
 }
 
 // Comandos internos (mínimo por ahora)
 int Executor::ejecutar_interno(const vector<string>& tokens) {
     // Persona 2 implementará esto más detallado
-    cout << "[Comando interno: " << tokens[0] << "]" << endl;
-    return 0;
+    
+    return Builtins::ejecutar_comando_interno(tokens);
 }
 
 // IMPLEMENTAR FORK + EXEC
