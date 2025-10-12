@@ -6,7 +6,7 @@
 using namespace std;
 
 void probar_parser() {
-    cout << "🔧 PROBANDO PARSER - PERSONA 2" << endl;
+    cout << "PROBANDO PARSER - PERSONA 2" << endl;
     cout << "===============================" << endl;
     
     // Casos de prueba
