@@ -2,8 +2,8 @@
 #include <vector>
 #include <string>
 #include <unistd.h>
-#include "core/builtins.h"
-#include "core/parser.h"
+#include "builtins.h"
+#include "parser.h"
 
 using namespace std;
 
