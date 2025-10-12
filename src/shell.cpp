@@ -1,5 +1,7 @@
 #include "shell.h"
+#include "parser.h"
 #include <iostream>
+#include <vector>
 using namespace std;
 
 // Constructor
@@ -23,18 +25,37 @@ string Shell::leer_comando() {
 // Loop principal de la shell
 void Shell::ejecutar() {
     cout << "Bienvenido a Mini-Shell (Persona 1)" << endl;
-
     while (ejecutando) {
         mostrar_prompt();
         string comando = leer_comando();
 
-        // Por ahora solo manejar "salir"
         if (comando == "salir") {
             ejecutando = false;
-            cout << "Saliendo de la shell..." << endl;
+            cout << "¡Hasta luego!" << endl;
         } else if (!comando.empty()) {
-            cout << "Comando recibido: " << comando << endl;
-            // TODO: Aquí luego se integrará con el parser y executor
+            // INTEGRACIÓN: Usar parser 
+            vector<string> tokens = Parser::dividir_tokens(comando);
+
+            // EJECUCIÓN BÁSICA (solo para demostrar funcionamiento)
+            if (!tokens.empty()) {
+                cout << "Ejecutando: " << tokens[0];
+                if (tokens.size() > 1) {
+                    cout << " con argumentos: ";
+                    for (size_t i = 1; i < tokens.size(); i++) {
+                        cout << tokens[i] << " ";
+                    }
+                }
+                cout << endl;
+                
+                // Comandos internos básicos
+                if (tokens[0] == "pwd") {
+                    // Simular pwd por ahora
+                    cout << "/home/usuario/proyectos" << endl;
+                }
+                else if (tokens[0] == "help") {
+                    cout << "Comandos disponibles: pwd, help, salir" << endl;
+                }
+            }
         }
     }
 }

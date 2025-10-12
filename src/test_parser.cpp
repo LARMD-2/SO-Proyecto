@@ -1,7 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include "core/parser.h"
+#include "parser.h"
 
 using namespace std;
 
