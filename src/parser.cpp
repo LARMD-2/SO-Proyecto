@@ -113,3 +113,11 @@ vector<vector<string>> Parser::dividir_en_dos_comandos(const vector<string>& tok
     
     return comandos;
 }
+
+bool Parser::detectar_background(std::vector<std::string>& tokens) {
+    if (!tokens.empty() && tokens.back() == "&") {
+        tokens.pop_back();  // Remover el "&" del final
+        return true;
+    }
+    return false;
+}
