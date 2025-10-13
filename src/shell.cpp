@@ -44,3 +44,9 @@ void Shell::ejecutar() {
         }
     }
 }
+
+int main() {
+    Shell shell;
+    shell.ejecutar();
+    return 0;
+}
