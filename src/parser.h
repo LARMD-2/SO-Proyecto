@@ -22,8 +22,9 @@ public:
 
     static int detectar_pipe(const vector<string>& tokens);
 
-    static vector<vector<string>> dividir_en_dos_comandos(
-        const vector<string>& tokens);
+    static vector<vector<string>> dividir_en_dos_comandos(const vector<string>& tokens);
+    
+    static bool detectar_background(std::vector<std::string>& tokens);
 };
 
 #endif
