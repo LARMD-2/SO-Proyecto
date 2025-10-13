@@ -5,6 +5,7 @@
 #include <cstring>
 #include <cstdlib>
 #include <builtins.h>
+#include "redirection.h"
 using namespace std;
 
 // Función principal que decide si es interno o externo
@@ -12,6 +13,19 @@ int Executor::ejecutar_comando(const vector<string>& tokens) {
     if (tokens.empty()) {
         return 0;  
     }
+
+    string archivo_redireccion;
+    bool redirigir = Redirection::tiene_redireccion_salida(tokens, archivo_redireccion);
+    
+    // Filtrar tokens (quitar > y archivo)
+    vector<string> tokens_filtrados;
+    for (const auto& token : tokens) {
+        if (token != ">" && token.substr(0, 1) != ">" && token != archivo_redireccion) {
+            tokens_filtrados.push_back(token);
+        }
+    }
+
+    if (tokens_filtrados.empty()) return 0;
     
     if (es_comando_interno(tokens[0])) {
         return ejecutar_interno(tokens);
@@ -32,14 +46,22 @@ int Executor::ejecutar_interno(const vector<string>& tokens) {
     return Builtins::ejecutar_comando_interno(tokens);
 }
 
-// IMPLEMENTAR FORK + EXEC
-int Executor::ejecutar_externo(const vector<string>& tokens) {
+// IMPLEMENTAR FORK + EXEC + redirección
+int Executor::ejecutar_externo(const vector<string>& tokens, bool redirigir, const string& archivo) {
     cout << "Ejecutando comando externo: " << tokens[0] << endl;
 
     pid_t pid = fork();
     
     if (pid == 0) {
         // PROCESO HIJO
+
+        if (redirigir) {
+            if (Redirection::configurar_redireccion_salida(archivo) != 0) {
+                exit(1);
+            }
+        }
+
+
         // Convertir vector<string> a char*[] para execvp
         char** argv = vector_a_argv(tokens);
         
@@ -68,6 +90,10 @@ int Executor::ejecutar_externo(const vector<string>& tokens) {
         cerr << "Error: no se pudo crear proceso hijo" << endl;
         return -1;
     }
+}
+
+int Executor::ejecutar_externo(const vector<string>& tokens) {
+    return ejecutar_externo(tokens, false, "");
 }
 
 // Función auxiliar: convertir vector<string> a char*[]
