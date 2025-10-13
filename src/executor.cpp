@@ -70,9 +70,8 @@ bool Executor::es_comando_interno(const string& comando) {
     return Builtins::es_comando_interno(comando);
 }
 
-// Comandos internos (mínimo por ahora)
+// Comandos internos 
 int Executor::ejecutar_interno(const vector<string>& tokens) {
-    // Persona 2 implementará esto más detallado
     return Builtins::ejecutar_comando_interno(tokens);
 }
 
@@ -143,4 +142,32 @@ void Executor::liberar_argv(char** argv) {
         free(argv[i]);
     }
     delete[] argv;
+}
+
+int Executor::ejecutar_externo_background(const std::vector<std::string>& tokens) {
+    cout << "Ejecutando en background: ";
+    for (const auto& t : tokens) cout << t << " ";
+    cout << endl;
+
+    pid_t pid = fork();
+    
+    if (pid == 0) {
+        // PROCESO HIJO (background)
+        char** argv = vector_a_argv(tokens);
+        execvp(argv[0], argv);
+        
+        // Si falla execvp
+        cerr << "Error: comando '" << tokens[0] << "' no encontrado" << endl;
+        liberar_argv(argv);
+        exit(1);
+        
+    } else if (pid > 0) {
+        // PROCESO PADRE - NO ESPERAR (background)
+        cout << "[" << pid << "] proceso en background" << endl;
+        return 0;
+        
+    } else {
+        cerr << "Error: no se pudo crear proceso hijo" << endl;
+        return -1;
+    }
 }
