@@ -11,7 +11,9 @@ public:
     static int ejecutar_comando(const vector<string>& tokens);
     static bool es_comando_interno(const string& comando);
     static int ejecutar_interno(const vector<string>& tokens);
-    static int ejecutar_externo(const vector<string>& tokens);
+
+    static int ejecutar_externo(const vector<string>& tokens, bool redirigir, const string& archivo);
+    static int ejecutar_externo(const vector<string>& tokens); // Overload sin redirección
 
 private:
     static char** vector_a_argv(const vector<string>& tokens);
