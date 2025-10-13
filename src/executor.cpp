@@ -1,4 +1,6 @@
 #include "executor.h"
+#include "parser.h"        
+#include "pipe_simple.h"   
 #include <iostream>
 #include <unistd.h>
 #include <sys/wait.h>
@@ -8,30 +10,59 @@
 #include "redirection.h"
 using namespace std;
 
-// Función principal que decide si es interno o externo
-int Executor::ejecutar_comando(const vector<string>& tokens) {
-    if (tokens.empty()) {
-        return 0;  
-    }
+// NUEVO MÉTODO: Procesar comandos con pipes y redirecciones
+int Executor::procesar_comando_con_pipes(const vector<string>& tokens) {
+    if (tokens.empty()) return 0;
 
-    string archivo_redireccion;
-    bool redirigir = Redirection::tiene_redireccion_salida(tokens, archivo_redireccion);
+    // 1. Detectar si hay PIPE
+    int pos_pipe = Parser::detectar_pipe(tokens);
     
-    // Filtrar tokens (quitar > y archivo)
-    vector<string> tokens_filtrados;
-    for (const auto& token : tokens) {
-        if (token != ">" && token.substr(0, 1) != ">" && token != archivo_redireccion) {
-            tokens_filtrados.push_back(token);
+    if (pos_pipe != -1) {
+        // CASO CON PIPE
+        cout << "Detectado pipe en el comando" << endl;
+        
+        // Dividir en dos comandos
+        vector<vector<string>> comandos = Parser::dividir_en_dos_comandos(tokens);
+        
+        // Verificar que ambos comandos tengan tokens
+        if (comandos[0].empty() || comandos[1].empty()) {
+            cerr << "Error: comando incompleto alrededor del pipe" << endl;
+            return -1;
+        }
+        
+        // Ejecutar el pipe
+        return PipeSimple::ejecutar_pipe_simple(comandos[0], comandos[1]);
+        
+    } else {
+        // CASO SIN PIPE - usar tu lógica actual de redirecciones
+        string archivo_redireccion;
+        bool redirigir = Redirection::tiene_redireccion_salida(tokens, archivo_redireccion);
+        
+        // Filtrar tokens (quitar > y archivo)
+        vector<string> tokens_filtrados;
+        for (const auto& token : tokens) {
+            if (token != ">" && token.substr(0, 1) != ">" && token != archivo_redireccion) {
+                tokens_filtrados.push_back(token);
+            }
+        }
+
+        if (tokens_filtrados.empty()) return 0;
+        
+        if (es_comando_interno(tokens_filtrados[0])) {
+            return ejecutar_interno(tokens_filtrados);
+        } else {
+            if (redirigir) {
+                return ejecutar_externo(tokens_filtrados, true, archivo_redireccion);
+            } else {
+                return ejecutar_externo(tokens_filtrados);
+            }
         }
     }
+}
 
-    if (tokens_filtrados.empty()) return 0;
-    
-    if (es_comando_interno(tokens[0])) {
-        return ejecutar_interno(tokens);
-    } else {
-        return ejecutar_externo(tokens);
-    }
+// MODIFICAR la función principal para usar el nuevo método
+int Executor::ejecutar_comando(const vector<string>& tokens) {
+    return procesar_comando_con_pipes(tokens);
 }
 
 // Verificar comandos internos
@@ -42,7 +73,6 @@ bool Executor::es_comando_interno(const string& comando) {
 // Comandos internos (mínimo por ahora)
 int Executor::ejecutar_interno(const vector<string>& tokens) {
     // Persona 2 implementará esto más detallado
-    
     return Builtins::ejecutar_comando_interno(tokens);
 }
 
@@ -60,7 +90,6 @@ int Executor::ejecutar_externo(const vector<string>& tokens, bool redirigir, con
                 exit(1);
             }
         }
-
 
         // Convertir vector<string> a char*[] para execvp
         char** argv = vector_a_argv(tokens);

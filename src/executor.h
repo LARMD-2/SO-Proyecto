@@ -14,6 +14,7 @@ public:
 
     static int ejecutar_externo(const vector<string>& tokens, bool redirigir, const string& archivo);
     static int ejecutar_externo(const vector<string>& tokens); // Overload sin redirección
+    static int procesar_comando_con_pipes(const vector<string>& tokens);
 
 private:
     static char** vector_a_argv(const vector<string>& tokens);

@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+using namespace std;
 
 class PipeSimple {
 public:
@@ -10,8 +11,8 @@ public:
     //Retorna: 0 si éxito, -1 si error
     
     static int ejecutar_pipe_simple(
-        const std::vector<std::string>& comando1,
-        const std::vector<std::string>& comando2);
+        const vector<string>& comando1,
+        const vector<string>& comando2);
 };
 
 #endif
