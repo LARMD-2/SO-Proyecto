@@ -81,3 +81,35 @@ void Parser::detectar_redirecciones(vector<string>& tokens, string& input_file, 
         }
     }
 }
+
+int Parser::detectar_pipe(const vector<string>& tokens) {
+    for (size_t i = 0; i < tokens.size(); i++) {
+        if (tokens[i] == "|") {
+            return i;
+        }
+    }
+    return -1;
+}
+
+vector<vector<string>> Parser::dividir_en_dos_comandos(const vector<string>& tokens) {
+    vector<vector<string>> comandos(2);
+    int pos_pipe = detectar_pipe(tokens);
+    
+    if (pos_pipe == -1) {
+        // No hay pipe, solo un comando
+        comandos[0] = tokens;
+        return comandos;
+    }
+    
+    // Primer comando (antes del pipe)
+    for (int i = 0; i < pos_pipe; i++) {
+        comandos[0].push_back(tokens[i]);
+    }
+    
+    // Segundo comando (después del pipe)
+    for (size_t i = pos_pipe + 1; i < tokens.size(); i++) {
+        comandos[1].push_back(tokens[i]);
+    }
+    
+    return comandos;
+}
