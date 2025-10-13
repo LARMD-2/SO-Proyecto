@@ -10,6 +10,18 @@
 #include "redirection.h"
 using namespace std;
 
+// Resolver ruta del ejecutable según especificación:
+// - Absoluta: usar tal cual
+// - Con '/': tratar como ruta dada (relativa o absoluta)
+// - Sin '/': intentar /bin/<cmd>
+static std::string resolver_ruta_ejecutable(const std::string& cmd) {
+    if (cmd.empty()) return cmd;
+    if (cmd[0] == '/' || cmd.find('/') != std::string::npos) {
+        return cmd; // absoluta o con ruta relativa explícita
+    }
+    return std::string("/bin/") + cmd; // fallback requerido
+}
+
 int Executor::procesar_comando_con_pipes(const std::vector<std::string>& tokens) {
     if (tokens.empty()) return 0;
 
@@ -96,14 +108,26 @@ int Executor::ejecutar_externo(const vector<string>& tokens, bool redirigir, con
             }
         }
 
-        // Convertir vector<string> a char*[] para execvp
+        // Convertir vector<string> a char*[] para exec
         char** argv = vector_a_argv(tokens);
         
-        // Ejecutar el comando
-        execvp(argv[0], argv);
+        // Resolver ruta acorde a la especificación (/bin fallback)
+        std::string ruta = resolver_ruta_ejecutable(tokens[0]);
 
-        // Si llegamos aquí, execvp falló
-        cerr << "Error: comando '" << tokens[0] << "' no encontrado" << endl;
+        if (tokens[0].find('/') == std::string::npos) {
+            // Caso "cmd" sin '/': verificar /bin/cmd ejecutable
+            if (access(ruta.c_str(), X_OK) != 0) {
+                perror((std::string("no se puede ejecutar ") + ruta).c_str());
+                liberar_argv(argv);
+                exit(127);
+            }
+        }
+
+        // Ejecutar el comando usando execv con ruta explícita
+        execv(ruta.c_str(), argv);
+
+        // Si llegamos aquí, execv falló
+        perror((std::string("execv: ") + ruta).c_str());
         liberar_argv(argv);
         exit(1);
         
@@ -114,8 +138,12 @@ int Executor::ejecutar_externo(const vector<string>& tokens, bool redirigir, con
         
         if (WIFEXITED(estado)) {
             return WEXITSTATUS(estado);
+        } else if (WIFSIGNALED(estado)) {
+            int sig = WTERMSIG(estado);
+            cerr << "El proceso hijo fue terminado por señal: " << strsignal(sig) << " (" << sig << ")" << endl;
+            return 128 + sig; // convención de retorno por señales
         } else {
-            cerr << "El proceso hijo terminó anormalmente" << endl;
+            cerr << "El proceso hijo terminó anormalmente (estado=" << estado << ")" << endl;
             return -1;
         }
         
@@ -160,10 +188,19 @@ int Executor::ejecutar_externo_background(const std::vector<std::string>& tokens
     if (pid == 0) {
         // PROCESO HIJO (background)
         char** argv = vector_a_argv(tokens);
-        execvp(argv[0], argv);
-        
-        // Si falla execvp
-        cerr << "Error: comando '" << tokens[0] << "' no encontrado" << endl;
+        // Resolver ruta acorde a la especificación
+        std::string ruta = resolver_ruta_ejecutable(tokens[0]);
+        if (tokens[0].find('/') == std::string::npos) {
+            if (access(ruta.c_str(), X_OK) != 0) {
+                perror((std::string("no se puede ejecutar ") + ruta).c_str());
+                liberar_argv(argv);
+                exit(127);
+            }
+        }
+        execv(ruta.c_str(), argv);
+
+        // Si falla execv
+        perror((std::string("execv: ") + ruta).c_str());
         liberar_argv(argv);
         exit(1);
         
@@ -173,7 +210,8 @@ int Executor::ejecutar_externo_background(const std::vector<std::string>& tokens
         return 0;
         
     } else {
-        cerr << "Error: no se pudo crear proceso hijo" << endl;
+    perror("fork");
+    cerr << "Error: no se pudo crear proceso hijo" << endl;
         return -1;
     }
 }
