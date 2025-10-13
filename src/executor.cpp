@@ -1,4 +1,6 @@
 #include "executor.h"
+#include "parser.h"        
+#include "pipe_simple.h"   
 #include <iostream>
 #include <unistd.h>
 #include <sys/wait.h>
@@ -8,30 +10,65 @@
 #include "redirection.h"
 using namespace std;
 
-// Función principal que decide si es interno o externo
-int Executor::ejecutar_comando(const vector<string>& tokens) {
-    if (tokens.empty()) {
-        return 0;  
-    }
+int Executor::procesar_comando_con_pipes(const std::vector<std::string>& tokens) {
+    if (tokens.empty()) return 0;
 
-    string archivo_redireccion;
-    bool redirigir = Redirection::tiene_redireccion_salida(tokens, archivo_redireccion);
+    // HACER COPIA para no modificar original
+    std::vector<std::string> tokens_temp = tokens;
     
-    // Filtrar tokens (quitar > y archivo)
-    vector<string> tokens_filtrados;
-    for (const auto& token : tokens) {
-        if (token != ">" && token.substr(0, 1) != ">" && token != archivo_redireccion) {
-            tokens_filtrados.push_back(token);
+    // 1. DETECTAR BACKGROUND primero (quita "&" si existe)
+    bool es_background = Parser::detectar_background(tokens_temp);
+    
+    // 2. Detectar PIPE (con tokens sin "&")
+    int pos_pipe = Parser::detectar_pipe(tokens_temp);
+    
+    if (pos_pipe != -1) {
+        // CASO PIPE (con o sin background)
+        std::vector<std::vector<std::string>> comandos = Parser::dividir_en_dos_comandos(tokens_temp);
+        
+        if (es_background) {
+            cout << "  Pipe en background - ejecutando en foreground por ahora" << endl;
+            // Por simplicidad, pipe en foreground primero
+        }
+        
+        return PipeSimple::ejecutar_pipe_simple(comandos[0], comandos[1]);
+        
+    } else {
+        // CASO SIN PIPE 
+        if (es_background) {
+            // BACKGROUND simple
+            return ejecutar_externo_background(tokens_temp);
+        } else {
+            // FOREGROUND normal con redirecciones
+            std::string archivo_redireccion;
+            bool redirigir = Redirection::tiene_redireccion_salida(tokens_temp, archivo_redireccion);
+            
+            // Filtrar tokens de redirección
+            std::vector<std::string> tokens_filtrados;
+            for (const auto& token : tokens_temp) {
+                if (token != ">" && token.substr(0, 1) != ">" && token != archivo_redireccion) {
+                    tokens_filtrados.push_back(token);
+                }
+            }
+
+            if (tokens_filtrados.empty()) return 0;
+            
+            if (es_comando_interno(tokens_filtrados[0])) {
+                return ejecutar_interno(tokens_filtrados);
+            } else {
+                if (redirigir) {
+                    return ejecutar_externo(tokens_filtrados, true, archivo_redireccion);
+                } else {
+                    return ejecutar_externo(tokens_filtrados);
+                }
+            }
         }
     }
+}
 
-    if (tokens_filtrados.empty()) return 0;
-    
-    if (es_comando_interno(tokens[0])) {
-        return ejecutar_interno(tokens);
-    } else {
-        return ejecutar_externo(tokens);
-    }
+// MODIFICAR la función principal para usar el nuevo método
+int Executor::ejecutar_comando(const vector<string>& tokens) {
+    return procesar_comando_con_pipes(tokens);
 }
 
 // Verificar comandos internos
@@ -39,10 +76,8 @@ bool Executor::es_comando_interno(const string& comando) {
     return Builtins::es_comando_interno(comando);
 }
 
-// Comandos internos (mínimo por ahora)
+// Comandos internos 
 int Executor::ejecutar_interno(const vector<string>& tokens) {
-    // Persona 2 implementará esto más detallado
-    
     return Builtins::ejecutar_comando_interno(tokens);
 }
 
@@ -60,7 +95,6 @@ int Executor::ejecutar_externo(const vector<string>& tokens, bool redirigir, con
                 exit(1);
             }
         }
-
 
         // Convertir vector<string> a char*[] para execvp
         char** argv = vector_a_argv(tokens);
@@ -114,4 +148,32 @@ void Executor::liberar_argv(char** argv) {
         free(argv[i]);
     }
     delete[] argv;
+}
+
+int Executor::ejecutar_externo_background(const std::vector<std::string>& tokens) {
+    cout << "Ejecutando en background: ";
+    for (const auto& t : tokens) cout << t << " ";
+    cout << endl;
+
+    pid_t pid = fork();
+    
+    if (pid == 0) {
+        // PROCESO HIJO (background)
+        char** argv = vector_a_argv(tokens);
+        execvp(argv[0], argv);
+        
+        // Si falla execvp
+        cerr << "Error: comando '" << tokens[0] << "' no encontrado" << endl;
+        liberar_argv(argv);
+        exit(1);
+        
+    } else if (pid > 0) {
+        // PROCESO PADRE - NO ESPERAR (background)
+        cout << "[" << pid << "] proceso en background" << endl;
+        return 0;
+        
+    } else {
+        cerr << "Error: no se pudo crear proceso hijo" << endl;
+        return -1;
+    }
 }
