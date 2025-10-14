@@ -68,19 +68,24 @@ Con flechas (Readline):
 
 ### Capturas
 
-Coloca tus capturas en `docs/capturas/` y se enlazarán aquí:
+- Prompt personalizado
+  - ![Prompt personalizado](docs/capturas/promtpersonalizado.png)
+- Resolución de rutas
+  - ![Resolución de rutas](docs/capturas/resolucionderutas.png)
+- Ejecución mediante procesos
+  - ![Ejecución mediante procesos](docs/capturas/ejecucionmedianteprocesos.png)
 
-- Prompt y ejecución básica:
-  - ![Prompt y ls](docs/capturas/promtppersonalizado.png)
-- Pipes y redirección:
-  - ![Pipe y grep](docs/capturas/02-pipe-grep.png)
-  - ![Redirección >](docs/capturas/03-redireccion-salida.png)
-- Built-ins:
-  - ![history y alias](docs/capturas/04-history-alias.png)
-- Flechas (Readline):
-  - ![Historial con flechas](docs/capturas/05-readline-flechas.png)
+- Manejo de errores
+  - ![Manejo de errores](docs/capturas/manejodeerrores.png)
+- Redirección de salida estándar (>)
+  - ![Redirección de salida estándar](docs/capturas/redireccion.png)
 
-> Sube tus imágenes a esa carpeta con esos nombres (o ajusta los enlaces).
+- Comando de salida
+  - ![Comando de salida](docs/capturas/salida.png)
+- Pipes
+  - ![Pipes](docs/capturas/pipes.png)
+- Comandos internos (built-ins)
+  - ![Comandos internos (built-ins)](docs/capturas/comandosinternos.png)
 
 ---
 
