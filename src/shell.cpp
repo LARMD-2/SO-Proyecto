@@ -24,7 +24,7 @@ string Shell::leer_comando() {
 
 // Loop principal de la shell
 void Shell::ejecutar() {
-    cout << "Bienvenido a Mini-Shell (Persona 1)" << endl;
+    cout << "Bienvenido a Mini-Shell" << endl;
     while (ejecutando) {
     // StdinReader gestiona el prompt; ReadlineReader también
     string comando = leer_comando();
