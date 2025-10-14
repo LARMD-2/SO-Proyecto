@@ -24,7 +24,7 @@ public:
 
     static vector<vector<string>> dividir_en_dos_comandos(const vector<string>& tokens);
     
-    static bool detectar_background(std::vector<std::string>& tokens);
+    static bool detectar_background(vector<string>& tokens);
 };
 
 #endif
