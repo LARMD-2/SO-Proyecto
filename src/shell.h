@@ -5,10 +5,13 @@
 #include <string>
 using namespace std;
 
+class LineReader; 
+
 class Shell {
 private:
     bool ejecutando;
     string prompt;
+    LineReader* reader;
     
 public:
     Shell();

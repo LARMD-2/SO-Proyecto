@@ -1,68 +1,90 @@
+## Mini-Shell (SO-Proyecto)
 
-1. Clona el repositorio:
+Pequeña shell en C++ que ejecuta comandos en modo foreground, con soporte para redirección, pipes, comandos internos y (opcional) navegación por historial con flechas usando GNU Readline.
 
-   ```bash
-   git clone https://github.com/LARMD-2/SO-Proyecto.git
-   ```
+### Requerimientos
+- Linux
+- Compilador C++17 (g++)
+- Opcional para flechas: `libreadline-dev` (Ubuntu/Debian)
 
+### Compilación y ejecución
+- Modo básico (sin flechas):
+  ```bash
+  ./build.sh
+  ./src/mi_shell
+  ```
+- Modo con flechas (Readline):
+  ```bash
+  ./build.sh readline
+  ./src/mi_shell
+  ```
+  Si falta la dependencia:
+  ```bash
+  sudo apt-get install -y libreadline-dev
+  ```
 
+### Características implementadas
 
-MANEJO DE GITFLOW:
+Base:
+- Prompt personalizado y lectura de comandos.
+- Resolución de rutas: absoluta tal cual; si no, fallback a `/bin/<cmd>` con verificación de permisos.
+- Ejecución con procesos: `fork()` en hijo + `execv()`, padre espera con `waitpid()`.
+- Manejo de errores con `perror/errno` y reporte si termina por señal.
+- Redirección de salida `>` (crea/trunca, sin imprimir en pantalla).
+- Salida con `salir`/`exit`.
 
+Extensiones (2+):
+- Pipes simples: `cmd1 | cmd2`.
+- Comandos internos (built-ins): `cd`, `pwd`, `help`, `history`, `alias`.
+- Opcional: navegación de historial con flechas (Readline) en modo interactivo.
 
-🔹 1. Crear tu rama de feature
-Siempre parte desde `develop` actualizado:
-`bash(en el terminal)
-git checkout develop
-git pull origin develop
-git checkout -b feature/nombre-feature
-``
-Ejemplos:
+Pendientes/Parcial:
+- Background `&`: lanza sin esperar, falta recolección diferida (SIGCHLD/WNOHANG) para evitar zombies.
+- Redirección `<` y `>>` (parser listo, falta integrar en ejecución).
+- Señales, hilos (parallel), meminfo: no implementados.
 
-* `feature/login`
-* `feature/reservas`
-* `feature/perfil-usuario`
+### Ejemplos de uso
 
----
-
-### 🔹 2. Subir tus cambios
-
-Cuando termines avances en tu feature:
-
+Sesión básica:
 ```bash
-git add .
-git commit -m "Feature: descripción breve de lo que hiciste" (si es correcion de algo poner "fix:descripción")
-git push origin feature/nombre-feature
+mi_shell> pwd
+mi_shell> alias ll='ls -la'
+mi_shell> ll
+mi_shell> history
+mi_shell> salir
 ```
 
----
-
-  3. Mantener tu feature actualizada (rebase)
-
-Si `develop` tuvo cambios mientras trabajabas, actualiza tu rama con: (ojo dentro de tu misma rama)
-
+Pipes y redirección:
 ```bash
-git fetch origin
-git rebase origin/develop
+mi_shell> ls | grep cpp
+mi_shell> echo hola > out.txt
 ```
 
-Esto reorganiza tus commits encima de los últimos cambios.
- Hazlo siempre **antes de abrir tu Pull Request** para evitar conflictos.
+Con flechas (Readline):
+- Usa flecha arriba/abajo para navegar comandos ya escritos.
+- Edición de línea (Ctrl+A/Ctrl+E) y borrado interactivo.
 
 ---
 
- 🔹 4. Pull Request
+### Capturas
 
-Cuando termines tu feature:
+Coloca tus capturas en `docs/capturas/` y se enlazarán aquí:
 
-1. Sube tu rama (`git push origin feature/nombre-feature`).
-2. Ve a GitHub y crea un **Pull Request de `feature/nombre-feature` → `develop`**.
-3. El administrador del repo revisará y hará el merge.
+- Prompt y ejecución básica:
+  - ![Prompt y ls](docs/capturas/promtppersonalizado.png)
+- Pipes y redirección:
+  - ![Pipe y grep](docs/capturas/02-pipe-grep.png)
+  - ![Redirección >](docs/capturas/03-redireccion-salida.png)
+- Built-ins:
+  - ![history y alias](docs/capturas/04-history-alias.png)
+- Flechas (Readline):
+  - ![Historial con flechas](docs/capturas/05-readline-flechas.png)
+
+> Sube tus imágenes a esa carpeta con esos nombres (o ajusta los enlaces).
 
 ---
 
- **Importante:**
-
-* Nunca trabajes directo en `main` o `develop`.
-* Todo tu trabajo va en una rama `feature/`.
-* El merge a `develop` lo hace el **admin del repo**.
+### Notas de desarrollo (Gitflow breve)
+- Trabajar en ramas `feature/*` y abrir PR hacia `develop`.
+- Evitar commits directos en `main`/`develop`.
+- Mantener feature actualizada con `git fetch` + `git rebase origin/develop` antes del PR.
