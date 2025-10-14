@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <unordered_map>
 
 using namespace std;
 
@@ -27,8 +28,16 @@ public:
     // Verifica si un comando es interno
     static bool es_comando_interno(const string& comando);
 
+    // Nuevo: historial y alias
+    static int history(const vector<string>& args);
+    static int alias(const vector<string>& args);
+    static void registrar_historial(const string& linea);
+    static void expandir_alias(vector<string>& tokens);
+
 private:
     static void mostrar_ayuda_completa();
+    static vector<string> historial;
+    static unordered_map<string, vector<string>> aliases;
 };
 
 #endif

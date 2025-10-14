@@ -3,6 +3,7 @@
 #include "executor.h"
 #include <iostream>
 #include <vector>
+#include "builtins.h"
 using namespace std;
 
 // Constructor
@@ -35,7 +36,9 @@ void Shell::ejecutar() {
             cout << "¡Hasta luego!" << endl;
         } else if (!comando.empty()) {
             // INTEGRACIÓN: Usar parser 
+            Builtins::registrar_historial(comando);
             vector<string> tokens = Parser::dividir_tokens(comando);
+            Builtins::expandir_alias(tokens);
 
             // EJECUCIÓN BÁSICA (solo para demostrar funcionamiento)
             if (!tokens.empty()) {
