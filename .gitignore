@@ -1,0 +1,12 @@
+# VS Code settings
+.vscode/
+
+# Build artifacts
+src/mi_shell
+*.o
+*.out
+*.log
+
+# OS junk
+.DS_Store
+Thumbs.db
