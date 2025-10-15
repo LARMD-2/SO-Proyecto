@@ -2,6 +2,8 @@
 #include <iostream>
 #include <string>
 
+using namespace std;
+
 #ifdef USE_READLINE
 #include <readline/readline.h>
 #include <readline/history.h>
@@ -21,7 +23,7 @@ string StdinReader::read(const string& prompt) {
 #else
     cout << prompt;
     string cmd;
-    if (!std::getline(cin, cmd)) return string();
+    if (!getline(cin, cmd)) return string();
     return cmd;
 #endif
 }
