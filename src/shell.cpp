@@ -38,7 +38,6 @@ void Shell::ejecutar() {
             vector<string> tokens = Parser::dividir_tokens(comando);
             Builtins::expandir_alias(tokens);
 
-            // EJECUCIÓN BÁSICA (solo para demostrar funcionamiento)
             if (!tokens.empty()) {
                 Executor::ejecutar_comando(tokens);
             }
